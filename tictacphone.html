@@ -1,0 +1,166 @@
+<html>
+    <head>
+        <title>Tic-Tac-Phone</title>
+        <link rel="stylesheet" type="text/css" href="css/style.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+
+    <body>
+        <div id="container">
+        <h1>tic-tac-phone</h1>
+        <div id="white">
+        
+        <h2>Please enter your phone number</h2>
+        
+
+        <p>
+            Win a game of tic-tac-toe in order to enter the digit corresponding to the last picked box.<br>
+            If you lose the number 0 will be entered. A tie will delete the last number inserted.
+        </p>
+        <div id="pn-container">
+            <label for="phone-number">Your phone number is</label>
+            <input readonly type="text" id="phone-number"></input>
+        </div>
+        <table id="gameboard">
+
+            <tbody>
+                <tr>
+                    <td class="gb-element" id="gb-1">1</td>
+                    <td class="gb-element" id="gb-2">2</td>
+                    <td class="gb-element" id="gb-3">3</td>
+                </tr>
+                <tr>
+                    <td class="gb-element" id="gb-4">4</td>
+                    <td class="gb-element" id="gb-5">5</td>
+                    <td class="gb-element" id="gb-6">6</td>
+                </tr>
+
+                <tr>
+                    <td class="gb-element" id="gb-7">7</td>
+                    <td class="gb-element" id="gb-8">8</td>
+                    <td class="gb-element" id="gb-9">9</td>
+                </tr>
+            </tbody>
+
+        </table>
+        <a href="#">Submit</a>
+        </div>
+        </div>
+    </div>
+        <script>
+
+            winningCombinations = [
+                [1,2,3],
+                [4,5,6],
+                [7,8,9],
+                [1,4,7],
+                [2,5,8],
+                [3,6,9],
+                [1,5,9],
+                [3,5,7],
+            ];
+
+            function getGrid(symbol) {
+                grid = [];
+                for(var i = 0; i < 9; i++) {
+                    if (document.getElementById("gb-"+(i+1)).classList.contains(symbol))
+                        grid.push(i+1);
+                }
+                return grid;
+            }
+            function containsEvery(array, target) {
+                return array.every(i => target.includes(i));
+            }
+            function detectWin(symbol) {
+                var grid = getGrid(symbol);
+                for(var i = 0; i < winningCombinations.length; i++) {
+                    if(containsEvery(winningCombinations[i], grid))
+                        return true;
+                }
+            }
+            function getOpportunityToWin(symbol) {
+                var grid = getGrid(symbol);
+                var slots = [];
+                for(var i = 0; i < winningCombinations.length; i++) {
+                    var count = 0;
+                    var slot = 0;
+                    for(var j = 0; j < 3; j++) {
+                        if(grid.includes(winningCombinations[i][j])) 
+                            count++;
+                        else
+                            slot = winningCombinations[i][j];
+
+                    }
+                    if(count == 2)
+                        slots.push(slot);
+                }
+                return slots;
+            }
+            function isValidSlot(i) {
+                return !document.getElementById("gb-"+i).classList.contains("selected");
+            }
+            function reset() {
+                Array.from(document.getElementsByClassName("gb-element")).forEach(function(e) {
+                    e.classList.remove("selected");
+                    e.classList.remove("circle");
+                    e.classList.remove("cross");
+                });
+            }
+            function click(e) {
+                var el = e.target;
+                if(el.classList.contains("selected"))
+                    return;
+                el.classList.add("selected");
+                el.classList.add("circle");
+                if(detectWin("circle")) {
+                    var num = el.id.replace("gb-", "");
+                    document.getElementById("phone-number").value += num;
+                    reset();
+                    return;
+                }
+                
+
+                var chosen = -1;
+
+                var winSlots = getOpportunityToWin("cross");
+                for(var i = 0; i < winSlots.length; i++) {
+                    if(isValidSlot(winSlots[i]))
+                        chosen = winSlots[i];
+                }
+
+                if(chosen == -1) {
+                    var preventWinSlots = getOpportunityToWin("circle");
+                    for(var i = 0; i < preventWinSlots.length; i++) {
+                        if(isValidSlot(preventWinSlots[i]))
+                            chosen = preventWinSlots[i];
+                    }                   
+                }
+                var attempts = 1000;
+                if(chosen == -1) {
+                    do {
+                        if(--attempts == 0) {
+                            var val = document.getElementById("phone-number").value;
+                            document.getElementById("phone-number").value = val.substring(0, val.length -1);
+                            reset();
+                            return;
+                        }
+                        chosen = Math.floor(Math.random() * 9) + 1;
+                    } while(!isValidSlot(chosen));
+                }
+
+                el = document.getElementById("gb-"+chosen);
+                el.classList.add("selected");
+                el.classList.add("cross");
+                if(detectWin("cross")) {
+                    document.getElementById("phone-number").value += 0;
+                    reset();
+                    return
+                }               
+ 
+            }
+            Array.from(document.getElementsByClassName("gb-element")).forEach(function(e) {
+                e.addEventListener('click', click);
+            });
+        </script>
+
+</html>
